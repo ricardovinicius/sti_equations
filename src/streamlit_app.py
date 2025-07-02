@@ -7,7 +7,20 @@ import datetime
 
 @st.fragment
 def get_data():
-    return cookie_manager.get('progresso')
+    data = cookie_manager.get('progresso')
+    if data:
+        loaded_data = json.loads(data)
+    else:
+        loaded_data = {}
+
+    loaded_data.setdefault("pontos", 0)
+    loaded_data.setdefault("resolvidos", 0)
+    loaded_data.setdefault("por_dificuldade", {
+        "Fácil": 0,
+        "Intermediário": 0,
+        "Difícil": 0
+    })
+    return loaded_data
 
 @st.fragment
 def save_data(data: dict):
@@ -19,20 +32,25 @@ def save_data(data: dict):
 
 @st.fragment
 def reset_data():
-    cookie_manager.delete("progresso")
+    if cookie_manager.get("progresso"):
+        cookie_manager.delete("progresso")
+
+
+
+
 
 user_data = get_data()
 
-if user_data is None:
+if not user_data:
     user_data = {}
-    save_data(user_data)
-    user_data.setdefault("pontos", 0)
-    user_data.setdefault("resolvidos", 0)
-    user_data.setdefault("por_dificuldade", {
-        "Fácil": 0,
-        "Intermediário": 0,
-        "Difícil": 0
-    })
+
+user_data.setdefault("pontos", 0)
+user_data.setdefault("resolvidos", 0)
+user_data.setdefault("por_dificuldade", {
+    "Fácil": 0,
+    "Intermediário": 0,
+    "Difícil": 0
+})
 
 
 

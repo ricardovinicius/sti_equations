@@ -28,7 +28,9 @@ def get_equation_solution(equation: str, variable: str):
 
     res = solve(eq, x)
 
-    return res[0]
+    if res:
+        return float(res[0])
+    return None
 
 
 if __name__ == "__main__":

@@ -11,21 +11,7 @@ data = get_data()
 st.metric("Problemas Resolvidos", data["resolvidos"])
 st.metric("Pontos Obtidos", data["pontos"])
 
-st.subheader("Adicionar Progresso Manual (simulação)")
 
-col1, col2 = st.columns(2)
-
-with col1:
-    dificuldade = st.selectbox("Dificuldade", ["Fácil", "Intermediário", "Difícil"])
-    pontos = st.number_input("Pontos", min_value=1, max_value=100, value=10)
-with col2:
-    if st.button("Adicionar Progresso"):
-        data["resolvidos"] += 1
-        data["pontos"] += pontos
-        data["por_dificuldade"][dificuldade] += 1
-        save_data(data)
-        st.success("Progresso salvo com sucesso!")
-        st.rerun()
 
 # ========== Gráfico Simples ==========
 st.subheader("Distribuição por Dificuldade")
@@ -41,7 +27,7 @@ st.bar_chart(df)
 
 # ========== Ações ==========
 st.divider()
-if st.button("Resetar Progresso"):
+if st.button("Resetar Progresso", key="reset_progress_button"):
     reset_data()
     st.success("Progresso resetado!")
     st.rerun()

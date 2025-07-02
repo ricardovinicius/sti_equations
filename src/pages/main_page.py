@@ -3,7 +3,21 @@ import streamlit as st
 import solver
 
 from pages.problems import set_random_problem
-from streamlit_app import get_data
+from streamlit_app import get_data, save_data
+
+def parse_user_input(input_str):
+    try:
+        return float(input_str)
+    except ValueError:
+        if '/' in input_str:
+            try:
+                numerator, denominator = map(float, input_str.split('/'))
+                if denominator == 0:
+                    return None  # Division by zero
+                return numerator / denominator
+            except ValueError:
+                return None  # Not a valid fraction format
+        return None  # Not a valid number or fraction
 
 change_type_tips = {
     # Transformações diretamente usadas para isolar x
@@ -65,34 +79,42 @@ if st.session_state.current_problem == "":
 
 # Função para exibir uma dica (simulação)
 def mostrar_dica():
+    # Reset hint_pos to 0 if it's at or beyond the last hint
+    if st.session_state.hint_pos >= len(st.session_state.solution_steps):
+        st.session_state.hint_pos = 0
+
+    # Display the current hint
     st.info(change_type_tips[st.session_state.solution_steps[st.session_state.hint_pos]["changeType"]])
 
-    if st.session_state.hint_pos < len(st.session_state.solution_steps):
-        st.session_state.hint_pos += 1
-    else :
-        st.session_state.hint_pos = 0
+    # Increment hint_pos for the next hint
+    st.session_state.hint_pos += 1
 
 @st.dialog("Solução")
 def display_result(result):
     if result:
         map_difficult = {
             1: "Fácil",
-            2: "Médio",
+            2: "Intermediário",
             3: "Difícil"
         }
 
         st.balloons()
         user_data = get_data()
         pontos = 5 * st.session_state.problem_difficulty - (st.session_state.hint_pos + 1)
-        user_data["pontos"] += 5 * st.session_state.problem_difficulty - (st.session_state.hint_pos + 1)
+        user_data["pontos"] += pontos
         user_data["resolvidos"] += 1
         user_data["por_dificuldade"][map_difficult[st.session_state.problem_difficulty]] += 1
+        save_data(user_data)
         st.success("Parabéns. Solução correta. Tente um novo problema.")
         st.info(f"Pontos ganhos: {pontos}")
+
+        # Limpa a resposta e define um novo problema
+        st.session_state.user_answer = ""
         set_random_problem()
 
     else:
         st.error("Solução incorreta. Tente novamente, ou utilize dicas.")
+
 
 with st.container(border=True):
     # Título com emoji
@@ -104,11 +126,22 @@ with st.container(border=True):
     st.caption(f"**Resolva para:** `{st.session_state.solve_for}`")
 
     with st.form('problem'):
-        st.session_state.user_answer = st.text_input("Sua resposta:", st.session_state.user_answer)
+        st.session_state.user_answer = st.text_input("Sua resposta:", key=f"answer_input_{st.session_state.current_problem}")
         submit = st.form_submit_button('Enviar solução')
 
     if submit:
-        display_result((solver.get_equation_solution(st.session_state.current_problem, st.session_state.solve_for) - float(st.session_state.user_answer) <= 0.0001))
+        parsed_answer = parse_user_input(st.session_state.user_answer)
+        if parsed_answer is None:
+            st.error("Por favor, insira um número válido ou uma fração (ex: 1/2).")
+        else:
+            is_correct = abs(
+                solver.get_equation_solution(st.session_state.current_problem, st.session_state.solve_for) - parsed_answer
+            ) <= 0.0001
+            
+            display_result(is_correct)
+            
+            if is_correct:
+                st.rerun()
 
     # Botões adicionais
     col1, col2 = st.columns(2)

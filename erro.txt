@@ -1,0 +1,8 @@
+KeyError: 'progresso'
+
+File "C:\Users\WellingtonSantos\Documents\GitHub\sti_equations\src\streamlit_app.py", line 35, in reset_data
+    cookie_manager.delete("progresso")
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+File "C:\Users\WellingtonSantos\AppData\Local\Programs\Python\Python313\Lib\site-packages\extra_streamlit_components\CookieManager\__init__.py", line 111, in delete
+    del self.cookies[cookie]
+        ~~~~~~~~~~~~^^^^^^^^
